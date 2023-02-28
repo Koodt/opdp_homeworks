@@ -1,5 +1,3 @@
-**Table of Contents**
-
 ### What is it?
 
 ----
