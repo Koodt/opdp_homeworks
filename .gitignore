@@ -236,3 +236,5 @@ poetry.toml
 
 ### Custom
 *secret
+*/reports/*
+*/log/*
