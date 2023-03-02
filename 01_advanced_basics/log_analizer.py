@@ -14,6 +14,8 @@ from collections import namedtuple
 
 config = {"REPORT_SIZE": 1000, "REPORT_DIR": "./reports", "LOG_DIR": "./log"}
 
+table = []
+
 
 def get_last_log(log_dir):
     filename_options = namedtuple("filename_options", ["path", "last_date"])
@@ -42,9 +44,14 @@ def get_log_files_list(path):
 def main():
     last_log_file = get_last_log(config["LOG_DIR"])
     with open(last_log_file.path + last_log_file.last_date) as f:
-        first_line = f.readline()
-
-    print(first_line)
+        for line in f:
+            time = re.search("\d+\.\d+$", line).group(0)
+            try:
+                url = re.search('"\w+\s(.*)\sHTTP', line).group(1)
+            except:
+                continue
+            if len(table) == 0:
+                table.append({"url": url, "time": time, "count": 1})
 
 
 if __name__ == "__main__":
