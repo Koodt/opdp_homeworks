@@ -10,25 +10,22 @@
 import os
 import re
 
-from datetime import datetime
+from collections import namedtuple
 
-config = {
-    "REPORT_SIZE": 1000,
-    "REPORT_DIR": "./reports",
-    "LOG_DIR": "./log"
-}
-
-# def get_last_logfile(log_dir):
-#     return "%s/nginx-access-ui.log-%s" % (log_dir, get_max_date(log_dir))
+config = {"REPORT_SIZE": 1000, "REPORT_DIR": "./reports", "LOG_DIR": "./log"}
 
 
-def get_log_file(log_dir):
-    return "%s/nginx-access-ui.log-%s" % (log_dir, get_max_date(log_dir))
+def get_last_log(log_dir):
+    filename_options = namedtuple("filename_options", ["path", "last_date"])
+    last_log_file = filename_options(
+        "%s/nginx-access-ui.log-" % log_dir, str(get_max_date(log_dir))
+    )
+    return last_log_file
 
 
 def get_max_date(log_dir):
-    max_date = 00000000
-    for file in get_all_log_files(log_dir):
+    max_date = int()
+    for file in get_log_files_list(log_dir):
         result = re.search("\d{8}$", file)
         if result:
             if int(result.group(0)) > max_date:
@@ -36,16 +33,15 @@ def get_max_date(log_dir):
     return max_date
 
 
-def get_all_log_files(path):
+def get_log_files_list(path):
     for file in os.listdir(path):
         if os.path.isfile(os.path.join(path, file)):
             yield file
 
 
 def main():
-    # current_date = datetime.today().strftime('%Y.%m.%d')
-    # print(current_date)
-    with open(get_log_file(config["LOG_DIR"])) as f:
+    last_log_file = get_last_log(config["LOG_DIR"])
+    with open(last_log_file.path + last_log_file.last_date) as f:
         first_line = f.readline()
 
     print(first_line)
