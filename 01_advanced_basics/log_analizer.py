@@ -11,10 +11,15 @@ import os
 import re
 
 from collections import namedtuple
+from decimal import Decimal
+from statistics import median
 
 config = {"REPORT_SIZE": 1000, "REPORT_DIR": "./reports", "LOG_DIR": "./log"}
 
-table = []
+pre_table = {}
+result_table = []
+full_count = 0
+full_time = 0
 
 
 def get_last_log(log_dir):
@@ -45,13 +50,43 @@ def main():
     last_log_file = get_last_log(config["LOG_DIR"])
     with open(last_log_file.path + last_log_file.last_date) as f:
         for line in f:
-            time = re.search("\d+\.\d+$", line).group(0)
+            time = Decimal(re.search("\d+\.\d+$", line).group(0))
             try:
                 url = re.search('"\w+\s(.*)\sHTTP', line).group(1)
             except:
                 continue
-            if len(table) == 0:
-                table.append({"url": url, "time": time, "count": 1})
+            if len(pre_table) == 0:
+                pre_table[url] = [time]
+            else:
+                if url not in pre_table:
+                    pre_table[url] = [time]
+                else:
+                    pre_table[url].append(time)
+
+    for row in pre_table:
+        full_count =+ len(pre_table[row])
+        full_time =+ sum(pre_table[row])
+
+        print(full_count)
+        print(full_time)
+
+    for row in pre_table:
+        result_table.append(
+            {
+                "url": row,
+                "count": len(pre_table[row]),
+                "time_max": max(pre_table[row]),
+                "time_sum": sum(pre_table[row]),
+                "time_avg": sum(pre_table[row]) / len(pre_table[row]),
+                "count_perc": len(pre_table[row]) / (full_count / 100),
+                "time_perc": sum(pre_table[row]) / (full_time / 100),
+                "time_med": median(pre_table[row])
+            })
+
+    very_result_table = sorted(result_table, key=lambda d: d['count'], reverse=True)
+
+    print(very_result_table[:5])
+    # import pdb; pdb.set_trace()
 
 
 if __name__ == "__main__":
